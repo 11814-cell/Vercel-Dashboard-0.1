@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeReport โรงเรียน</title>
+  <!-- Google Fonts: Prompt / Sarabun -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #f3f7fc;
+    }
+    .hero-gradient {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+    }
+    .glass-box {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+  <!-- Header / Navbar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="showView('studentView')">
+        <div class="bg-blue-600 text-white p-2 rounded-xl shadow-md shadow-blue-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <span class="font-bold text-xl text-slate-800 tracking-tight">SafeReport <span class="text-blue-600">โรงเรียน</span></span>
+      </div>
+
+      <div id="navRight">
+        <button id="teacherLoginBtn" onclick="showView('loginView')" 
+                class="px-4 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-medium rounded-full text-xs md:text-sm flex items-center gap-1.5 transition shadow-sm">
+          <span>🔐</span> สำหรับครู/ผู้ดูแล
+        </button>
+
+        <div id="userMenu" class="hidden flex items-center gap-3">
+          <span id="userEmail" class="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100"></span>
+          <button onclick="logoutTeacher()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition">
+            ออกจากระบบ
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow">
+
+    <!-- VIEW 1: ฟอร์มแจ้งเหตุสำหรับนักเรียน -->
+    <div id="studentView" class="space-y-6">
+      
+      <!-- Blue Hero Banner -->
+      <div class="hero-gradient text-white p-6 md:p-8 rounded-3xl shadow-xl shadow-blue-500/10 relative overflow-hidden">
+        <!-- Decorative Circle Background -->
+        <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <div class="relative z-10 space-y-3 max-w-2xl">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-medium text-white backdrop-blur-sm">
+            <span>🏫</span> ระบบแจ้งเหตุภายในโรงเรียน
+          </div>
+          <h1 class="text-2xl md:text-3xl font-extrabold leading-tight tracking-tight">
+            แจ้งเหตุอย่างปลอดภัย<br/>ให้โรงเรียนช่วยตรวจสอบ
+          </h1>
+          <p class="text-blue-100 text-xs md:text-sm font-light leading-relaxed">
+            สำหรับแจ้งพฤติกรรมหรือเหตุการณ์ที่ควรให้โรงเรียนตรวจสอบ เช่น การกลั่นแกล้ง การทะเลาะวิวาท การทำลายทรัพย์สิน หรือเหตุด้านความปลอดภัย
+          </p>
+          <div class="pt-2">
+            <div class="glass-box border border-white/20 rounded-xl p-3 text-xs text-blue-50 flex items-center gap-2">
+              <span class="text-sm">🔒</span>
+              <span>รายงานจะส่งให้ผู้ดูแลที่ได้รับอนุญาตเท่านั้น และไม่แสดงข้อมูลผู้แจ้งต่อสาธารณะ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 md:p-8 space-y-6">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span>📝</span> แบบฟอร์มแจ้งเหตุ
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">
+            กรุณาให้ข้อมูลตามข้อเท็จจริง หลีกเลี่ยงการใส่ข้อมูลส่วนตัวของนักเรียนเกินความจำเป็น ระบบนี้ไม่ใช่พื้นที่สำหรับประจานหรือตัดสินบุคคล ผู้ดูแลจะตรวจสอบข้อเท็จจริงก่อนดำเนินการ
+          </p>
+        </div>
+
+        <form id="reportForm" class="space-y-5">
+          <!-- Row 1: ประเภทเหตุการณ์ & วันที่ -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">ประเภทเหตุการณ์ <span class="text-red-500">*</span></label>
+              <select id="category" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                <option value="" disabled selected>เลือกประเภท</option>
+                <option value="การกลั่นแกล้ง / บูลลี่">การกลั่นแกล้ง / บูลลี่ (Bullying)</option>
+                <option value="การทะเลาะวิวาท">การทะเลาะวิวาท</option>
+                <option value="การทำลายทรัพย์สิน">การทำลายทรัพย์สินโรงเรียน</option>
+                <option value="พฤติกรรมเสี่ยง / สิ่งเสพติด">พฤติกรรมเสี่ยง / บุหรี่ไฟฟ้า / สิ่งเสพติด</option>
+                <option value="ความปลอดภัย / อุบัติเหตุ">ความปลอดภัย / จุดเสี่ยงอุบัติเหตุ</option>
+                <option value="อื่นๆ">เรื่องอื่นๆ</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">วันที่เกิดเหตุ <span class="text-red-500">*</span></label>
+              <input type="date" id="eventDate" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-slate-700">
+            </div>
+          </div>
+
+          <!-- Location -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">สถานที่เกิดเหตุ <span class="text-red-500">*</span></label>
+            <input type="text" id="location" required placeholder="เช่น อาคาร 2 / สนามฟุตบอล / ห้องเรียน 4/1" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+          </div>
+
+          <!-- Detail -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">รายละเอียดเหตุการณ์ <span class="text-red-500">*</span></label>
+            <textarea id="detail" rows="4" required placeholder="อธิบายว่าเกิดอะไรขึ้น เมื่อใด ที่ไหน และข้อมูลที่ช่วยให้โรงเรียนตรวจสอบได้..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"></textarea>
+          </div>
+
+          <!-- Photo Upload -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">แนบรูปภาพหลักฐาน <span class="text-red-500">*</span></label>
+            <div class="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center bg-slate-50/50 hover:bg-slate-50 transition cursor-pointer relative">
+              <input type="file" id="imageFile" accept="image/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImage(event)">
+              <div id="uploadPlaceholder" class="space-y-1">
+                <span class="text-2xl">📸</span>
+                <p class="text-xs font-medium text-slate-600">คลิกเพื่อเลือกรูปภาพ หรือลากไฟล์มาวาง</p>
+                <p class="text-[10px] text-slate-400">รองรับไฟล์ JPG, PNG, WEBP</p>
+              </div>
+              <div id="imagePreviewContainer" class="hidden flex flex-col items-center gap-2">
+                <img id="imagePreview" class="h-32 rounded-lg object-cover shadow-sm">
+                <span class="text-xs text-blue-600 font-medium">เปลี่ยนรูปภาพ</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reporter Name (Optional) -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">ชื่อผู้แจ้ง <span class="text-slate-400 font-normal">(เว้นว่างไว้หากต้องการปกปิดตัวตน)</span></label>
+            <input type="text" id="reporter" placeholder="ไม่ระบุตัวตน (Anonymous)" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-2">
+            <button type="submit" id="submitBtn" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-2xl shadow-lg shadow-blue-500/25 transition duration-200 flex items-center justify-center gap-2 text-sm">
+              <span>🚀</span> ส่งข้อมูลให้โรงเรียนตรวจสอบ
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: ล็อกอินครู/ผู้ดูแล -->
+    <div id="loginView" class="hidden max-w-md mx-auto my-12">
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 md:p-8 space-y-6">
+        <div class="text-center space-y-2">
+          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
+            🔑
+          </div>
+          <h2 class="text-xl font-bold text-slate-800">เข้าสู่ระบบสำหรับครู / ผู้ดูแล</h2>
+          <p class="text-xs text-slate-500">กรอกอีเมลและรหัสผ่านที่คุณครูลงทะเบียนไว้กับระบบ SafeReport</p>
+        </div>
+
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">อีเมลบัญชีผู้ใช้</label>
+            <input type="email" id="teacherEmail" required placeholder="teacher@school.ac.th" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">รหัสผ่าน</label>
+            <input type="password" id="teacherPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <button type="submit" id="loginBtn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md shadow-blue-500/20 text-sm transition">
+            เข้าสู่ระบบ
+          </button>
+          <button type="button" onclick="showView('studentView')" class="w-full py-2 text-slate-500 hover:text-slate-800 text-xs text-center block">
+            ← กลับไปหน้าแจ้งเหตุ
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- VIEW 3: แดชบอร์ดตรวจสอบข้อมูล (เฉพาะครู) -->
+    <div id="adminView" class="hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
+        <div>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full">Dashboard</span>
+          <h2 class="text-xl font-bold text-slate-800 mt-1">รายการแจ้งเหตุทั้งหมด</h2>
+          <p class="text-xs text-slate-500">เฉพาะครูและผู้ดูแลระบบที่มีสิทธิ์ในการเข้าถึงรูปภาพและรายละเอียด</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="showView('studentView')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+            หน้าฟอร์มแจ้งเหตุ
+          </button>
+          <button onclick="fetchReports()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-500/20 transition flex items-center gap-1.5">
+            <span>🔄</span> โหลดข้อมูลใหม่
+          </button>
+        </div>
+      </div>
+
+      <!-- Reports List Grid -->
+      <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="col-span-full text-center py-12 text-slate-400 text-sm">กำลังดึงข้อมูลรายการ...</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200/80 py-4 mt-8">
+    <div class="max-w-4xl mx-auto px-4 text-center text-xs text-slate-400">
+      SafeReport School Security System &copy; 2026 — ระบบรับเรื่องแจ้งเหตุความปลอดภัยในโรงเรียน
+    </div>
+  </footer>
+
+  <!-- Logic Script -->
+  <script>
+    // 1. Supabase Credentials (เปลี่ยนเป็นของคุณ)
+    const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Auto set date picker to today
+    document.getElementById('eventDate').valueAsDate = new Date();
+
+    // Check Auth Session on load
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      updateAuthUI(session);
+    });
+
+    function updateAuthUI(session) {
+      if (session) {
+        document.getElementById('teacherLoginBtn').classList.add('hidden');
+        document.getElementById('userMenu').classList.remove('hidden');
+        document.getElementById('userEmail').innerText = session.user.email;
+        showView('adminView');
+        fetchReports();
+      } else {
+        document.getElementById('teacherLoginBtn').classList.remove('hidden');
+        document.getElementById('userMenu').classList.add('hidden');
+        showView('studentView');
+      }
+    }
+
+    function showView(viewId) {
+      ['studentView', 'loginView', 'adminView'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(viewId).classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Preview Upload Image
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('imagePreview').src = e.target.result;
+          document.getElementById('uploadPlaceholder').classList.add('hidden');
+          document.getElementById('imagePreviewContainer').classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Teacher Login Handler
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('teacherEmail').value;
+      const password = document.getElementById('teacherPassword').value;
+      
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert("เข้าสู่ระบบไม่สำเร็จ: " + error.message);
+      } else {
+        updateAuthUI(data.session);
+      }
+    });
+
+    async function logoutTeacher() {
+      await supabaseClient.auth.signOut();
+      updateAuthUI(null);
+    }
+
+    // Student Submit Report Handler
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>⏳</span> กำลังส่งข้อมูล...`;
+
+      try {
+        const category = document.getElementById('category').value;
+        const eventDate = document.getElementById('eventDate').value;
+        const location = document.getElementById('location').value;
+        const detail = document.getElementById('detail').value;
+        const reporter = document.getElementById('reporter').value || "ไม่ระบุตัวตน";
+        const file = document.getElementById('imageFile').files[0];
+
+        // 1. Upload Image to Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `reports/${fileName}`;
+
+        const { error: uploadError } = await supabaseClient.storage.from('report-images').upload(filePath, file);
+        if (uploadError) throw uploadError;
+
+        // 2. Get Public URL
+        const { data: urlData } = supabaseClient.storage.from('report-images').getPublicUrl(filePath);
+
+        // 3. Save to Database Table
+        const { error: insertError } = await supabaseClient.from('reports').insert([
+          { 
+            category: category,
+            event_date: eventDate,
+            location: location,
+            topic: `[${category}] ${location}`,
+            detail: detail,
+            reporter: reporter,
+            image_url: urlData.publicUrl,
+            status: 'pending'
+          }
+        ]);
+        if (insertError) throw insertError;
+
+        alert("ส่งข้อมูลรายงานเรียบร้อยแล้ว ข้อมูลถูกส่งถึงคุณครูผู้ดูแลโดยปลอดภัย");
+        document.getElementById('reportForm').reset();
+        document.getElementById('imagePreviewContainer').classList.add('hidden');
+        document.getElementById('uploadPlaceholder').classList.remove('hidden');
+        document.getElementById('eventDate').valueAsDate = new Date();
+
+      } catch (err) {
+        console.error(err);
+        alert("เกิดข้อผิดพลาด: " + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>🚀</span> ส่งข้อมูลให้โรงเรียนตรวจสอบ`;
+      }
+    });
+
+    // Fetch Reports for Teacher Dashboard
+    async function fetchReports() {
+      const container = document.getElementById('reportsList');
+      container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">กำลังโหลดรายการแจ้งเหตุ...</div>`;
+
+      const { data, error } = await supabaseClient.from('reports').select('*').order('created_at', { ascending: false });
+      if (error) {
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-red-500">เกิดข้อผิดพลาดในการดึงข้อมูล</div>`;
+        return;
+      }
+
+      if (data.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ยังไม่มีรายการแจ้งเหตุในขณะนี้</div>`;
+        return;
+      }
+
+      container.innerHTML = data.map(item => `
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between">
+          <div>
+            <div class="h-48 bg-slate-100 relative overflow-hidden">
+              <img src="${item.image_url}" class="w-full h-full object-cover">
+              <span class="absolute top-3 left-3 bg-blue-600/90 backdrop-blur-md text-white text-[11px] px-3 py-1 rounded-full font-medium shadow-sm">
+                ${escapeHtml(item.category || 'แจ้งเหตุ')}
+              </span>
+            </div>
+            <div class="p-5 space-y-3">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>📍 ${escapeHtml(item.location || '-')}</span>
+                <span>📅 ${item.event_date || ''}</span>
+              </div>
+              <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line">${escapeHtml(item.detail)}</p>
+            </div>
+          </div>
+          <div class="p-5 pt-0 border-t border-slate-100 mt-3 flex items-center justify-between text-xs text-slate-500">
+            <span>ผู้แจ้ง: <strong class="text-slate-700">${escapeHtml(item.reporter)}</strong></span>
+            <a href="${item.image_url}" target="_blank" class="text-blue-600 font-semibold hover:underline flex items-center gap-1">
+              🔍 ดูรูปเต็ม
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+    }
+  </script>
+</body>
+</html>
